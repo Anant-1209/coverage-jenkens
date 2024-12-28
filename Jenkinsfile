@@ -7,7 +7,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 // Checkout the code from GitHub
-                git 'https://github.com/your-username/your-repo.git'
+                git 'https://github.com/Anant-1209/coverage-jenkens.git'
             }
         }
         stage('Setup Python Environment') {
@@ -45,8 +45,14 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 script {
-                    // Run SonarQube analysis (if applicable)
-                    sh 'sonar-scanner -D"sonar.projectKey=python-unittest" -D"sonar.sources=." -D"sonar.host.url=http://localhost:9000" -D"sonar.token=your_token_here"'
+                    // Run SonarQube analysis (using the correct shell command)
+                    sh ''' 
+                    sonar-scanner.bat \
+                    -D"sonar.projectKey=jenkins-coverage" \
+                    -D"sonar.sources=." \
+                    -D"sonar.host.url=http://localhost:9000" \
+                    -D"sonar.token=sqp_a7afb85079007fecf6fe1e7a7b6014e6349ce01c"
+                    '''
                 }
             }
         }
