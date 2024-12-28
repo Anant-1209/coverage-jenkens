@@ -7,26 +7,39 @@ pipeline {
         stage('Checkout') {
             steps {
                 // Checkout the code from GitHub
-                git 'https://github.com/Anant-1209/coverage-jenkens.git'
+                git branch: 'main', url: 'https://github.com/Anant-1209/coverage-jenkens.git'
             }
         }
         stage('Setup Python Environment') {
             steps {
                 script {
                     // Setup virtual environment
-                    sh 'python -m venv ${VIRTUAL_ENV}'
-                    sh '. ${VIRTUAL_ENV}/Scripts/activate'  // For Windows
-                    // sh 'source ${VIRTUAL_ENV}/bin/activate'  // For Linux/Mac
-                    sh 'pip install -r requirements.txt'  // Install dependencies
+                    echo 'Setting up Python virtual environment...'
+                    sh 'python -m venv ${VIRTUAL_ENV}'  // Create virtual environment
+                    
+                    // Activate the virtual environment depending on the OS
+                    if (isUnix()) {
+                        sh 'source ${VIRTUAL_ENV}/bin/activate'  // For Linux/Mac
+                    } else {
+                        sh '. ${VIRTUAL_ENV}/Scripts/activate'  // For Windows
+                    }
+                    // Install dependencies from requirements.txt
+                    sh 'pip install -r requirements.txt'
                 }
             }
         }
         stage('Run Tests and Coverage') {
             steps {
                 script {
-                    // Run the tests and generate coverage report
-                    sh '. ${VIRTUAL_ENV}/Scripts/activate'  // For Windows
-                    // sh 'source ${VIRTUAL_ENV}/bin/activate'  // For Linux/Mac
+                    // Activate the virtual environment before running tests
+                    if (isUnix()) {
+                        sh 'source ${VIRTUAL_ENV}/bin/activate'  // For Linux/Mac
+                    } else {
+                        sh '. ${VIRTUAL_ENV}/Scripts/activate'  // For Windows
+                    }
+                    
+                    // Run the tests and generate the coverage report
+                    echo 'Running tests with coverage...'
                     sh 'coverage run -m unittest discover'  // Run the tests
                     sh 'coverage html'  // Generate HTML coverage report
                 }
@@ -35,6 +48,7 @@ pipeline {
         stage('Publish Coverage') {
             steps {
                 // Publish the coverage report as an artifact or display it
+                echo 'Publishing the coverage report...'
                 publishHTML(target: [
                     reportName: 'Coverage Report',
                     reportDir: 'htmlcov',
@@ -45,7 +59,8 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 script {
-                    // Run SonarQube analysis (using the correct shell command)
+                    // Run SonarQube analysis
+                    echo 'Running SonarQube analysis...'
                     sh ''' 
                     sonar-scanner.bat \
                     -D"sonar.projectKey=jenkins-coverage" \
@@ -59,7 +74,8 @@ pipeline {
     }
     post {
         always {
-            // Clean up (optional)
+            // Clean up workspace after the pipeline execution
+            echo 'Cleaning up workspace...'
             cleanWs()
         }
     }
